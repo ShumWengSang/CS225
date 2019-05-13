@@ -1,49 +1,114 @@
 #include <stdio.h>     /* printf, sprintf */
+#include <stdlib.h>    /* Malloc */
 #include "splitter.h"  /* SplitFile, JoinFiles */
-int SplitFile(char const *  filename,  char const * output, size_t size) {
+
+#define PAGESIZE 4096
+
+int SplitFile(char const *  filename,  char const * output, size_t size)
+{
+    /* Buffer to hold the current file name to output. */
     char current_file_name[256];
-    int file_count=1,i=0;
+    
+    /* The current counter of the file */
+    unsigned file_count = 1;
+    size_t size_read = 0;
 	
+	/* Allocate a buffer as big as size, or if bigger, PAGESIZE*/
+	size_t buffer_size = size > PAGESIZE ? PAGESIZE : size;
+	char * buffer = malloc(sizeof(char) * buffer_size) ;
+
 	/* Open source file. */
-	
-    printf("split %s into chunks of %d named\n",filename,size);
-	
-	/* Allocate a buffer as big as size */
-	
-	/* Do */
-		/* Open destination file */
-	
-		/* Read as many as I can. Store the amount read. */
-	
-		/* Take the contents and paste it into buffer. */
-		
-		/* Put as many as you read into outstream. */
-		
-		/* Close destination file */
-	/* While the amount read is the same as the size. */	
-		
-	/* Deallocate dynamically allocated buffer */
-	
-    for (;i<5;++i) 
-	{
-        /* print in to a string. The format is string(%s) 
-         * and a 4-digit integer padded with 0's on the left, i.e.
-         * 1 is printed as 0001, 123 as 0123, note that 12345 is printed as 12345 */
-        sprintf(current_file_name,"%s%04lu\n",output,file_count++);
-        /* What if we use this line below?
-         * sprintf(current_file_name,"%s%04lu\n",output,++file_count); */
-        printf("%s",current_file_name);
+    FILE * sourceFile = fopen(filename, "rb");
+    size_t leftover = 0;
+
+    /* Check if malloc came in properly */
+    if(buffer == NULL)
+    {
+        return E_NO_MEMORY;
     }
-    printf("...\n");
-	
+    /* See if file opened properly */
+    if(sourceFile == NULL)
+    {
+        /* Error */
+        return E_BAD_SOURCE;
+    }
+
+    printf("split %s into chunks of %lu named\n", filename, size);
+
+    /* While not at end of file. */
+    while(!feof(sourceFile))
+    {
+        char * buffer_local = buffer;
+        FILE * destFile = NULL;
+        size_t total_written_bytes = 0;
+        size_t written_bytes = 0;
+
+        unsigned j;
+        /* Read as many as I can. Store the amount read in our PAGE */
+        size_read = fread(buffer, sizeof(char), buffer_size, sourceFile);
+
+        if(leftover != 0)
+        {
+            fwrite(buffer_local, sizeof(char), leftover, destFile);
+            fclose(destFile);
+        }
+
+        /* Current Size */
+        for(j = 0; j <= size_read; j += written_bytes)
+        {
+            size_t part_size;
+            /* If the chunk we are reading is bigger then size.*/
+            if(total_written_bytes + size > size_read)
+            {
+                part_size = size_read - total_written_bytes;
+                /* End the loop if we keep reading 0.*/
+                if(part_size == 0)
+                {
+                    break;
+                }
+            }
+            else
+            {
+                part_size = size;
+            }
+
+            /* Determine the string of the file. */
+            sprintf(current_file_name, "%s%04u\n", output, file_count++);
+            printf("%s", current_file_name);
+            /* Open destination file */
+            destFile = fopen(current_file_name, "wb");
+            /* Error checking */
+            if (destFile == NULL) {
+                return E_BAD_DESTINATION;
+            }
+            /* Now we write all we can in. */
+            buffer_local += j;
+            written_bytes = fwrite(buffer_local, sizeof(char), part_size, destFile);
+            leftover = part_size - written_bytes;
+            total_written_bytes += written_bytes;
+
+            /* Close the file if we have fully written into it. */
+            if(leftover == 0)
+            {
+                fclose(destFile);
+            }
+        }
+    }
+	/* Deallocate dynamically allocated buffer */
+    free(buffer);
+
 	/* Close source file */
     return 0;
 }
 
-int JoinFiles(char** filenames, int num_files, char const * output) {
+int JoinFiles(char** filenames, int num_files, char const * output)
+{
     printf("join\n");
-	/* Open desination file. */
-	
+	/* Open destination file. */
+    (void)filenames;
+    (void)num_files;
+    (void)output;
+
     while (*filenames) {
 		/* Open source file */
 		

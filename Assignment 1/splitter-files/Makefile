@@ -1,7 +1,7 @@
 PRG=gnu.exe
 GCC=g++
 MSC=cl
-GCCFLAGS=-Wall -Wextra -ansi -pedantic -Wunused
+GCCFLAGS=-Wall -Wextra -ansi -pedantic -Wunused -g
 DRIVER0=driver.cpp
 
 VALGRIND_OPTIONS=-q --leak-check=full

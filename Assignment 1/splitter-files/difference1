@@ -1,0 +1,7 @@
+1,2c1,3
+< test1_0001
+< test1_0002
+---
+> ls: cannot access 'test1_????': No such file or directory
+> diff: test1_0001: No such file or directory
+> diff: test1_0002: No such file or directory
