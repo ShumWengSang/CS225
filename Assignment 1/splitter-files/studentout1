@@ -1,3 +1,2 @@
-ls: cannot access 'test1_????': No such file or directory
-diff: test1_0001: No such file or directory
-diff: test1_0002: No such file or directory
+test1_0001
+test1_0002

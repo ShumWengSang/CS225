@@ -73,7 +73,7 @@ int SplitFile(char const *  filename,  char const * output, size_t size)
             }
 
             /* Determine the string of the file. */
-            sprintf(current_file_name, "%s%04u\n", output, file_count++);
+            sprintf(current_file_name, "%s%04u", output, file_count++);
             printf("%s", current_file_name);
             /* Open destination file */
             destFile = fopen(current_file_name, "wb");
@@ -103,24 +103,39 @@ int SplitFile(char const *  filename,  char const * output, size_t size)
 
 int JoinFiles(char** filenames, int num_files, char const * output)
 {
-    printf("join\n");
+    char buffer[PAGESIZE];
 	/* Open destination file. */
-    (void)filenames;
-    (void)num_files;
-    (void)output;
+    FILE *destination = fopen(output, "wb");
+    int i;
 
-    while (*filenames) {
-		/* Open source file */
-		
-		
-		/* While c = read != EOF */
-			/* putchar c into destination */
-		
-		/* Close source file */
-        printf("%s\n",*filenames++);
+    printf("join\n");
+    if(destination == NULL)
+    {
+        return E_BAD_DESTINATION;
+    }
+
+    for(i = 0 ; i < num_files; i++)
+    {
+        FILE *source = fopen(*(filenames + i), "rb");
+        size_t size_read;
+        if(source == NULL)
+        {
+            fclose(destination);
+            return E_BAD_SOURCE;
+        }
+
+        do{
+            /* Read the amount possible. */
+            size_read = fread(&buffer, sizeof(char), PAGESIZE, source);
+            /* Write the amount possible. */
+            fwrite(&buffer, sizeof(char), size_read, destination);
+        }while(size_read != 0);
+        /* Close file */
+        fclose(source);
     }
 	
-	/* Close desitnation file */
+	/* Close destination file */
+	fclose(destination);
     printf("into %s\n",output);
     return 0;
 }
